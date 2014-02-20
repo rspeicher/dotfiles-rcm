@@ -1,0 +1,173 @@
+#!/usr/bin/env ruby
+
+require_relative 'include/rubygem'
+require_relative 'include/applescript_helpers'
+
+require 'pathname'
+require 'fileutils'
+rubygem 'trollop'
+rubygem 'taglib-ruby', 'taglib'
+
+MUSIC_ROOT = Pathname.new(['/Volumes/fileserver/Music/Library', '/fileserver/a/root/Music/Library'].select { |d| Dir.exists?(d) }.first)
+
+module Helpers
+  def shorten(path)
+    path.to_s.gsub(MUSIC_ROOT.to_s, '{root}')
+  end
+
+  # Sanitizes a string for use in a filename
+  def sanitize(s)
+    s.to_s.
+      gsub("\\", '/').
+      gsub('/', ', ').
+      gsub(' / ', ', ').
+      gsub('?', '').
+      gsub(/([^\s]+): /, '\1 ')
+  end
+end
+
+class MusicMover
+  include Helpers
+  include ApplescriptHelpers
+
+  # Options parsed by Trollop
+  attr_accessor :opts
+  attr_reader   :quiet
+
+  # Details for the track currently being processed
+  attr_accessor :track_info
+
+  # Pathname object for the current location of the track
+  attr_accessor :track_path
+
+  def initialize(opts)
+    @opts  = opts
+    @quiet = opts[:quiet]
+  end
+
+  def run
+    selection = itunes("get selection").split(', ')
+    selection.each do |track|
+      location = itunes("get location of #{track.strip} as text")
+
+      # Skip to the next track if the file is missing for whatever reason
+      # (e.g., network drive not attached)
+      next if location == "missing value"
+
+      path = posix_path(location)
+
+      @track_path = Pathname.new(path)
+      @track_info = extract_info
+
+      if opts[:single]
+        new_filename = process_as_single
+      else
+        new_filename = process_as_album
+      end
+
+      begin
+        unless opts[:pretend]
+          # Make the containing folder if needed
+          FileUtils.mkdir_p(new_filename.dirname)
+
+          FileUtils.mv(track_path, new_filename)
+
+          # Remove old parent if it's empty
+          dir = track_path.parent
+          FileUtils.rm_r(dir) if dir.entries.length == 2
+        end
+
+        # Write the change back to iTunes so it actually persists
+        new_filename = opts[:pretend] ? shorten(new_filename) : new_filename
+        itunes %{set location of #{track.strip} to POSIX file "#{new_filename}" as alias}, opts[:pretend]
+      rescue Exception
+        # Ignore any exceptions about directory already existing or failing to
+        # delete the old one.
+      end
+
+      puts unless @quiet
+    end
+  end
+
+  private
+
+  def extract_info
+    # Return value
+    info = Hash.new('')
+
+    # Gonna use this a lot, so make it more accessible
+    path = @track_path.to_s
+
+    return info unless File.exists?(path)
+
+    # Proc that takes a TagLib::Tag object and returns a Hash with just the info we care about.
+    extraction = ->(tag) do
+      {
+        album:  tag.album,
+        artist: tag.respond_to?(:frame_list) ? (tag.frame_list('TPE2').first || tag.artist).to_s : tag.artist.to_s,
+        name:   tag.title,
+        number: tag.track,
+        year:   tag.year
+      }
+    end
+
+    # Which tag attribute we use depends on the file type...
+    case ext = File.extname(path)
+    when '.m4a'
+      TagLib::MP4::File.open(path) do |f|
+        info = extraction.call(f.tag)
+      end
+    when '.mp3'
+      TagLib::MPEG::File.open(path) do |f|
+        info = extraction.call(f.id3v2_tag)
+      end
+    else
+      puts
+      puts "Unsupported file format: #{ext}"
+      exit 1
+    end
+
+    info
+  end
+
+  def process_as_single
+    # Library/Childish Gambino
+    artist_folder = MUSIC_ROOT + sanitize(track_info[:artist])
+
+    # Library/Childish Gambino - It's On.mp3
+    artist_folder + sprintf('%s - %s%s', sanitize(track_info[:artist]), sanitize(track_info[:name]), track_path.extname)
+  end
+
+  def process_as_album
+    # Library/Childish Gambino
+    artist_folder = MUSIC_ROOT + sanitize(track_info[:artist])
+
+    # Library/Childish Gambino/2011 - Camp
+    album_folder  = artist_folder + sprintf('%d - %s', track_info[:year].to_i, sanitize(track_info[:album]))
+
+    # Library/Childish Gambino/2011 - Camp/01 - Outside.mp3
+    album_folder + sprintf('%02d - %s%s', track_info[:number].to_i, sanitize(track_info[:name]), track_path.extname)
+  end
+end
+
+opts = Trollop::options do
+  version "musicmover 1.2.0 (c) 2012-2013 Robert Speicher"
+  banner <<-EOS
+
+musicmover performs tag-based filesystem renaming for the selected iTunes
+tracks.
+
+Usage:
+  musicmover [options]
+EOS
+
+  opt :pretend, "Don't actually modify anything",                  :default => false
+  opt :quiet,   "Don't output anything",                           :default => false
+  opt :copy,    "Copy files instead of moving them",               :default => false
+  opt :single,  "Process selection as singles rather than albums", :default => false
+end
+
+mover = MusicMover.new(opts)
+mover.run
+
+trap("INT") { puts; exit(1) }

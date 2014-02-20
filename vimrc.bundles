@@ -1,0 +1,170 @@
+set nocompatible
+
+filetype off
+set rtp+=~/.vim/bundle/vundle/
+call vundle#rc()
+
+" Let Vundle manage Vundle
+Bundle 'gmarik/vundle'
+
+" ------------------------------
+" General
+" ------------------------------
+
+Bundle 'bling/vim-airline'
+Bundle 'rking/ag.vim'
+Bundle 'tpope/vim-dispatch'
+Bundle 'tpope/vim-endwise'
+Bundle 'tpope/vim-eunuch'
+Bundle 'tpope/vim-repeat'
+Bundle 'tpope/vim-speeddating'
+Bundle 'tpope/vim-surround'
+Bundle 'tpope/vim-unimpaired'
+
+Bundle 'kien/ctrlp.vim'
+    let g:ctrlp_custom_ignore = '\.git$\|\.hg$\|\.svn$'
+    let g:ctrlp_dotfiles = 0
+    let g:ctrlp_max_depth = 15
+    let g:ctrlp_max_files = 5000
+    let g:ctrlp_open_multiple_files = 't'
+    let g:ctrlp_working_path_mode = 2
+
+    if executable('ag')
+      let g:ctrlp_user_command = 'ag %s -l --nocolor -g ""'
+      let g:ctrlp_use_caching = 1
+    endif
+
+    map <Leader>b :CtrlPBuffer<CR>
+
+    " Start CtrlP scoped to the current file's directory
+    map <Leader>e :CtrlP %%<cr>
+
+    " CtrlP scoped to various Rails directories
+    autocmd User Rails map <Leader>c :CtrlP app/controllers/<cr>
+    autocmd User Rails map <Leader>h :CtrlP app/helpers/<cr>
+    autocmd User Rails map <Leader>j :CtrlP app/assets/javascripts/<cr>
+    autocmd User Rails map <Leader>m :CtrlP app/models/<cr>
+    autocmd User Rails map <Leader>u :CtrlP spec/models/<cr>
+    autocmd User Rails map <Leader>v :CtrlP app/views/<cr>
+
+Bundle 'thoughtbot/vim-rspec'
+    let g:rspec_command = "Dispatch rspec --format progress {spec}"
+
+    map <Leader>t :call RunCurrentSpecFile()<CR>
+    map <Leader>n :call RunNearestSpec()<CR>
+    map <Leader>l :call RunLastSpec()<CR>
+    map <Leader>s :call RunAllSpecs()<CR>
+
+Bundle 'AndrewRadev/switch.vim'
+    nnoremap - :Switch<cr>
+
+Bundle 'Tabular'
+    map <Leader>a= :Tabularize /=<CR>
+    map <Leader>a> :Tabularize /=><CR>
+    map <Leader>a: :Tabularize properties<CR>
+    map <Leader>at :Tabularize table<CR>
+    map <Leader>a# :Tabularize rdoc<CR>
+
+    vmap <Leader>a= :Tabularize /=<CR>gv
+    vmap <Leader>a> :Tabularize /=><CR>gv
+    vmap <Leader>a: :Tabularize properties<CR>gv
+    vmap <Leader>at :Tabularize table<CR>gv
+    vmap <Leader>a# :Tabularize rdoc<CR>gv
+
+Bundle 'tComment'
+    nmap <Leader>cc <C-_><C-_>
+    vmap <Leader>cc <C-_><C-_>
+
+Bundle 'scrooloose/nerdtree'
+    let g:NERDTreeIgnore      = ['\.rbc$', '\~$', '.DS_Store$']
+    let g:NERDTreeChDirMode   = 2
+    let g:NERDTreeQuitOnOpen  = 1
+    let g:NERDTreeMinimalUI   = 1
+    let g:NERDTreeDirArrows   = 0
+    let g:NERDTreeHijackNetrw = 1
+    map <Leader>/ :NERDTreeFind<CR>
+
+    autocmd WinEnter * call s:CloseIfOnlyNerdTreeLeft()
+
+    " Close all open buffers on entering a window if the only
+    " buffer that's left is the NERDTree buffer
+    function! s:CloseIfOnlyNerdTreeLeft()
+      if exists("t:NERDTreeBufName")
+        if bufwinnr(t:NERDTreeBufName) != -1
+          if winnr("$") == 1
+            q
+          endif
+        endif
+      endif
+    endfunction
+
+" ------------------------------
+" CoffeeScript / JavaScript
+" ------------------------------
+
+Bundle 'kchmck/vim-coffee-script'
+" Bundle 'pangloss/vim-javascript'
+
+" ------------------------------
+" Git
+" ------------------------------
+
+Bundle 'tpope/vim-fugitive'
+Bundle 'tpope/vim-git'
+
+" ------------------------------
+" Ruby
+" ------------------------------
+
+Bundle 'tpope/vim-cucumber'
+Bundle 'tpope/vim-haml'
+Bundle 'tpope/vim-rails'
+Bundle 'tpope/vim-rake'
+" Bundle 'vim-ruby/vim-ruby'
+
+" ------------------------------
+" Text objects
+" ------------------------------
+
+runtime macros/matchit.vim
+
+Bundle 'kana/vim-textobj-user'
+" Bundle 'argtextobj.vim'
+" Bundle 'michaeljsmith/vim-indent-object'
+Bundle 'nelstrom/vim-textobj-rubyblock'
+
+" ------------------------------
+" Misc
+" ------------------------------
+
+Bundle 'nginx.vim'
+" Bundle 'juvenn/mustache.vim'
+Bundle 'tpope/vim-markdown'
+
+" ------------------------------
+" Colors
+" ------------------------------
+
+Bundle 'tomasr/molokai'
+Bundle 'chriskempson/vim-tomorrow-theme'
+Bundle 'nanotech/jellybeans.vim'
+Bundle 'croaky/vim-colors-github'
+
+" ------------------------------
+" Experimental
+" ------------------------------
+
+Bundle 'Gundo'
+    nnoremap <Leader>u :GundoToggle<CR>
+
+Bundle 'ZoomWin'
+    map <Leader>z :ZoomWin<CR>
+
+" Bundle 'applescript.vim'
+
+Bundle 'jc00ke/vim-tomdoc'
+
+" Bundle 'aliva/vim-fish'
+" Bundle 'rodjek/vim-puppet'
+
+filetype on

@@ -1,0 +1,165 @@
+#!/usr/bin/env ruby
+
+require 'logger'
+require_relative 'include/rubygem'
+rubygem 'trollop'
+
+# Party time...
+rubygem 'chronic'
+rubygem 'cocaine'
+
+class Splitter
+  def initialize(options)
+    @options   = options
+    @sequencer = Sequencer.new(options[:input])
+
+    Cocaine::CommandLine.logger = Logger.new(STDOUT)
+    Cocaine::CommandLine.logger.formatter = ->(s, d, p, m) { "#{m}\n" }
+    Cocaine::CommandLine.runner = Cocaine::CommandLine::FakeRunner.new if @options[:pretend]
+  end
+
+  def run
+    if @options[:times].any?
+      times = @options.delete(:times).flatten!
+
+      # [[n, n+1], [n+1, n+2], [...]]
+      times.each_with_index do |v,i|
+        @options[:start] = times[i]
+        @options[:end]   = times[i+1]
+        run!
+      end
+    else
+      run!
+    end
+  end
+
+  private
+
+  def run!
+    if @options[:ffmpeg]
+      line = Cocaine::CommandLine.new("ffmpeg",   %{-i :input -ss :start -t :end -codec copy -copyinkf :output}, expected_outcodes: [0, nil])
+    else
+      line = Cocaine::CommandLine.new("mencoder", %{-oac pcm -ovc copy -ss :start -endpos :end :input -o :output -mc 0 -noskip}, expected_outcodes: [0, nil])
+    end
+
+    line.run({
+      input:  @options[:input],
+      start:  start_time,
+      end:    end_time,
+      output: output_filename(@options[:input])
+    })
+  end
+
+  def start_time
+    @options[:start] || "00:00:00"
+  end
+
+  def end_time
+    if @options[:end]
+      if @options[:start]
+        (Chronic.parse(@options[:end]) - Chronic.parse(@options[:start])).to_i.to_s
+      else
+        @options[:end]
+      end
+    else
+      "999999999" # Hack to just go to the end of the video
+    end
+  end
+
+  def output_filename(input)
+    if @options[:sequence]
+      input.gsub(/(.*)(\.\w+)$/, '\1-part' + @sequencer.next.to_s + '\2')
+    else
+      input.gsub(/(.*)(\.\w+)$/, '\1-split\2')
+    end
+  end
+end
+
+class Sequencer
+  attr_accessor :index
+
+  def initialize(input)
+    @index = next_sequence(input)
+  end
+
+  def next
+    @index += 1
+  end
+
+  private
+
+  def next_sequence(input)
+    # Get the list of files in this file's directory
+    entries = Dir.entries(File.dirname(File.expand_path(input)))
+
+    # Get only those matching a sequenced file
+    entries.select! { |e| e =~ /.*-part(\d+).*/i }
+
+    # Remove everything but the part number from each entry
+    entries.map!    { |e| e.gsub(/.*-part(\d+).*/i, '\1').to_i }
+
+    # Sort the entries then get the last one then add one to get the next in the sequence
+    (entries.length > 0) ? (entries.sort[-1]) : 0
+  end
+end
+
+if ARGV.delete('--test')
+  require 'rspec/autorun'
+  require 'mocha/api'
+
+  describe Sequencer do
+    describe "#next" do
+      let(:seq) { Sequencer.new('movie.mp4') }
+
+      it "sequences correctly when no previous sequences exist" do
+        Dir.expects(:entries).returns(['.', '..'])
+        seq.next.should == 1
+      end
+
+      it "sequences correctly when called multiple times" do
+        Dir.expects(:entries).returns(['.', '..'])
+        seq.next.should == 1
+        seq.next.should == 2
+        seq.next.should == 3
+        seq.next.should == 4
+      end
+
+      it "sequences correctly when previous sequence files exist" do
+        Dir.expects(:entries).returns(['.', '..', 'movie-part1.mp4', 'movie-part2.mp4'])
+        seq.next.should == 3
+        seq.next.should == 4
+      end
+    end
+  end
+else
+  opts = Trollop::options do
+    version "movie_split 1.0.0 (c) 2013 Robert Speicher"
+    banner <<-EOS
+  movie_split provides a simple interface to splitting video files using mencoder or ffmpeg.
+
+  Usage:
+      movie_split [options] filename
+  EOS
+
+    # Times
+    opt :start,    "Start time in hh:mm:ss",                       type: String
+    opt :end,      "End time in hh:mm:ss",                         type: String
+    opt :times,    "A sequence of start times",                    type: :strings, multi: true
+
+    # Backends
+    opt :ffmpeg,   "Use ffmpeg",                                   default: true
+    opt :mencoder, "Use mencoder",                                 default: false
+
+    opt :sequence, "Automatically sequence resulting filename(s)", default: false
+    opt :pretend,  "Don't actually run any commands",              default: false
+  end
+
+  Trollop::die "provide an input file"                              if ARGV.empty? || !File.exist?(ARGV[0])
+  Trollop::die "provide --start and --end OR --times"               unless opts[:start] || opts[:end] || opts[:times]
+  Trollop::die "provide --start and --end OR --times, but not both" if (opts[:start] || opts[:end]) && opts[:times].any?
+
+  opts[:ffmpeg] = !opts[:mencoder] # Mutually exclusive
+  opts[:input]  = ARGV[0]
+
+  Splitter.new(opts).run
+end

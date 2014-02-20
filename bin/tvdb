@@ -1,0 +1,198 @@
+#!/usr/bin/env ruby
+
+# tvdb renames video files to a specific format including the show name, season
+# and episode numbers and episode title
+#
+# Data comes from thetvdb.com API, and this script expects a file named
+# .tvdb_credentials in the same folder as this script containing your API key
+
+require 'rubygems'
+require 'trollop'
+require 'httparty'
+require 'wriggle'
+
+require_relative 'include/extract_info'
+
+# Most of this is from tvdb_party -- kudos to @maddox
+class Client
+  include HTTParty
+
+  base_uri 'thetvdb.com/api'
+
+  def initialize(api_key)
+    @api_key   = api_key.to_s.strip
+  end
+
+  def search(series_name)
+    response = self.class.get("/GetSeries.php", query: {seriesname: series_name, language: 'en'}).parsed_response
+    return [] unless response["Data"]
+
+    case response["Data"]["Series"]
+    when Array
+      response["Data"]["Series"]
+    when Hash
+      [response["Data"]["Series"]]
+    else
+      []
+    end
+  end
+
+  def get_episode_title(series_id, season, episode, order = :default)
+    response = self.class.get("/#{@api_key}/series/#{series_id}/#{order}/#{season.to_i}/#{episode.to_i}/en.xml").parsed_response
+    if response["Data"] && response["Data"]["Episode"]
+      response["Data"]["Episode"]['EpisodeName']
+    else
+      nil
+    end
+  end
+end
+
+class Renamer
+  def initialize(opts)
+    @show        = opts[:show].flatten.join(' ')
+    @input       = opts[:input]
+    @order       = opts[:dvd] ? :dvd : :default
+    @pretend     = opts[:pretend]
+    @interactive = opts[:interactive]
+  end
+
+  def go
+    @client  = Client.new(File.read(File.expand_path('../.tvdb_credentials', __FILE__)))
+    @results = @client.search(@show)
+
+    if @results.length == 0
+      puts "Got no results for \"#{@show}\""
+      exit 1
+    end
+
+    @series_id = (@results.length > 1) ? select_result['seriesid'] : @results.first['seriesid']
+
+    puts
+
+    if File.directory?(@input)
+      wriggle(@input) do |w|
+        w.extension(:avi, :mp4, :m4v, :mkv) { |path| process_file(path) }
+      end
+    else
+      process_file(@input)
+    end
+  end
+
+  def process_file(path)
+    return if path.start_with?('._')
+
+    info  = ExtractInfo.extract(path)
+
+    if title = @client.get_episode_title(@series_id, info['season'], info['episode'], @order)
+      new_filename = File.join(File.dirname(path), format_filename(info['season'], info['episode'], title)) + File.extname(path)
+
+      unless File.basename(path) == File.basename(new_filename)
+        command = %{mv -n "#{path}" "#{new_filename}"}
+        interactive(command)
+      end
+    else
+      puts "#{path} -- Couldn't get a title (#{info.inspect})"
+    end
+  end
+
+  def format_filename(season, episode, title)
+    show  = @show.tr('/', ' ').tr(%{:?\\<>|*"}, '').strip
+    title = title.gsub(': ', ', ').gsub(' / ', ', ').tr(%{:?/\\<>|*"}, '').strip
+
+    sprintf("%s - s%02de%02d - %s", show, season.to_i, episode.to_i, title)
+  end
+
+  private
+
+  def interactive(command)
+    print command
+
+    # Pretend takes priority; just add a new line and move on
+    if @pretend
+      puts
+      return
+    end
+
+    if @interactive
+      print " [Ynaq] "
+      input = STDIN.gets.chomp.strip.downcase
+
+      case input
+      when 'n' then return
+      when 'q' then exit(1)
+      when 'a' then @interactive = false
+      end
+    else
+      puts
+    end
+
+    system(command)
+  end
+
+  # When multiple results are returned from a search, present them to the user
+  # to let them pick which one they want
+  def select_result
+    result = nil
+
+    until result
+      puts
+      puts %{Got multiple results for "#{@show}", please pick one:}
+
+      @results.each_with_index do |s, i|
+        puts "  #{i+1}: #{s['SeriesName']}"
+      end
+
+      print "  > "
+      index = STDIN.gets.chomp.to_i - 1
+      result = @results[index].nil? ? nil : @results[index]
+    end
+
+    result
+  end
+end
+
+if ARGV.delete('--test')
+
+  require 'minitest/autorun'
+
+  class RenamerTest < MiniTest::Unit::TestCase
+    def setup
+      @r = Renamer.new(show: ['30 Rock'])
+    end
+
+    def test_format_filename_removes_bad_characters_from_title
+      f = @r.format_filename(1, 2, "Betrayal: What Really Happened With My Baseball Team, Disaster at Knuckle Beach?")
+      assert_equal "30 Rock - s01e02 - Betrayal, What Really Happened With My Baseball Team, Disaster at Knuckle Beach", f
+
+      f = @r.format_filename(1, 2, "C:\> autoexec.bat")
+      assert_equal "30 Rock - s01e02 - C autoexec.bat", f
+    end
+
+    def test_format_filename_removes_bad_characters_from_show
+      @r = Renamer.new(show: ['Nip/Tuck'])
+      f  = @r.format_filename(1, 2, "Title")
+      assert_equal "Nip Tuck - s01e02 - Title", f
+    end
+  end
+
+else
+  opts = Trollop::options do
+    version "tvdb 1.0.1 (c) 2011 Robert Speicher"
+    banner <<-EOS
+
+tvdb renames video files to a specific format including the show name, season
+and episode numbers, and episode title
+
+Usage:
+    tvdb [options]
+EOS
+
+    opt :show,        "Show name",                                    type: :strings, multi: true, required: true
+    opt :input,       "File or folder to process",                    default: File.expand_path('.')
+    opt :dvd,         "Use DVD sort order instead of standard order", default: false
+    opt :pretend,     "Don't actually modify any files",              default: false
+    opt :interactive, "Prompt before each file is renamed",           default: false
+  end
+
+  Renamer.new(opts).go
+end

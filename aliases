@@ -1,0 +1,43 @@
+# Unix
+# alias tlf="tail -f"
+# alias ln='ln -v'
+# alias mkdir='mkdir -p'
+# alias ...='../..'
+alias l='ls'
+alias ll='ls -al'
+alias lh='ls -Alh'
+alias -g G='| grep'
+alias -g M='| less'
+alias -g L='| wc -l'
+alias -g ONE="| awk '{ print \$1}'"
+alias -g WRF="|while read file; do"
+alias e="$EDITOR"
+alias v="$VISUAL"
+
+# Bundler
+alias b="bundle"
+alias be="bundle exec"
+
+# git
+alias g='git'
+alias gb='git branch'
+alias gc='git commit -v'
+alias gca='gc --amend'
+alias gco='git checkout'
+alias gd='git diff'
+alias gp='git push'
+alias gs='git status'
+
+# tmux
+alias t="tmux"
+alias ta="tmux attach"
+alias tls="tmux list-sessions"
+alias tk="tmux kill-server"
+
+# servers
+alias glutt='ssh tsigo@gluttony'
+alias tsigo='ssh tsigo@tsigo.com'
+
+# Convenience
+alias youtube-mp3="youtube-dl -t --no-mtime --extract-audio --audio-format mp3 --audio-quality 192"
+alias psname="ps aux | grep -i"

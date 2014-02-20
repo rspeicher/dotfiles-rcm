@@ -1,0 +1,38 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'trollop'
+
+opts = Trollop::options do
+  version "menc_join 1.0.0 (c) 2011 Robert Speicher"
+  banner <<-EOS
+menc_join provides a simple interface to joining video files using mencoder (mplayer)
+
+Usage:
+    menc_join file1 file2 [file3 file4]
+EOS
+
+  opt :pretend, "Don't actually call mencoder", :default => false
+end
+
+args = ARGV.map { |v| v.split("\t") }.flatten
+
+Trollop::die "must provide at least two filenames to join" unless args.length >= 2
+
+args.each do |file|
+  Trollop::die "#{file} is not a valid file" unless File.exist?(file)
+end
+
+def extract_basename(file)
+  if file =~ /(.*)[\.\-\_]cd\d(\.\w+)$/i
+    return File.basename($1 + $2)
+  else
+    extname = File.extname(file)
+    return "#{File.basename(file, extname)}-joined#{extname}"
+  end
+end
+
+basename = extract_basename(args[0])
+call = %[mencoder -oac copy -ovc copy "#{args.join('" "')}" -o "#{basename}"]
+puts call
+exec call unless opts[:pretend]

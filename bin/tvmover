@@ -1,0 +1,58 @@
+#!/usr/bin/env ruby
+
+require_relative 'include/extract_info'
+
+COPY = ARGV.delete('--copy')
+
+unless ARGV.length > 0
+  puts
+  puts "Usage: tvmover file1 [file2 file3 ...]"
+  exit(1)
+end
+
+def titlecase(string)
+  string.
+    gsub('.', ' ').
+    gsub('_', ' ').
+    gsub(/\b('?[a-z])/) { $1.capitalize }.
+    gsub(' And ', ' and ').
+    gsub(' Of ', ' of ').
+    strip
+end
+
+def specialcase(string)
+  string = "The Office" if string.downcase == "the office us"
+  string = "It's Always Sunny In Philadelphia" if string.downcase.include?('always sunny')
+
+  string
+end
+
+TV_ROOT = ['/Volumes/fileserver/TV Shows', '/fileserver/a/root/TV Shows'].select { |d| Dir.exists?(d) }.first
+
+ARGV.each do |input|
+  info = ExtractInfo.extract(File.basename(input, File.extname(input)))
+
+  if info['series'].nil? || info['season'].nil?
+    puts "Error: Could not get show information for #{input}"
+  else
+    # Get rid of years
+    series = info['series'].gsub(/\d{4}/, '')
+
+    series = titlecase(series)
+    series = specialcase(series)
+
+    folder = File.join(TV_ROOT, series, "Season #{info['season'].to_i}")
+
+    if File.directory?(folder)
+      if COPY
+        `cp -n "#{input}" "#{folder}"`
+      else
+        `mv -n "#{input}" "#{folder}"`
+      end
+
+      puts "#{File.basename(input)} - done!"
+    else
+      puts "Error: #{folder} does not exist"
+    end
+  end
+end

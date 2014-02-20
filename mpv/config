@@ -1,0 +1,8 @@
+# Ignore default keybinds
+no-input-default-bindings
+
+# Show the OSD for longer
+osd-duration=2500
+
+# Start muted
+mute
