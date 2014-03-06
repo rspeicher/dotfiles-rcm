@@ -4,6 +4,7 @@
 .*.swp
 .DS_Store
 .bundle/
+.gems-*/
 .livereload
 .rbenv-gemsets
 .rbenv-version
