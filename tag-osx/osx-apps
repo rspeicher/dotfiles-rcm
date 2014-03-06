@@ -1,0 +1,29 @@
+#!/usr/bin/env ruby
+
+# Hacky script to move some default OSX apps that I never use, or only open
+# occassionally via Alfred, into a sub-folder of Applications.
+
+apps = [
+  'Calculator',
+  'Chess',
+  'DVD Player',
+  'Dashboard',
+  'FaceTime',
+  'Game Center',
+  'Image Capture',
+  'Launchpad',
+  'Mission Control',
+  'Photo Booth',
+  'Stickies',
+  'TextEdit',
+  'iBooks'
+]
+
+apps.each do |app|
+  if Dir.exists?("/Applications/#{app}.app")
+    `sudo rm -r "/Applications/System/#{app}.app"`
+    `sudo mv "/Applications/#{app}.app" /Applications/System/`
+  else
+    puts "Application not found: \"/Applications/#{app}.app\""
+  end
+end
