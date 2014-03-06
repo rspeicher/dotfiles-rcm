@@ -119,7 +119,7 @@ class MusicMover
       end
     when '.mp3'
       TagLib::MPEG::File.open(path) do |f|
-        info = extraction.call(f.id3v2_tag)
+        info = extraction.call(f.tag)
       end
     else
       puts
