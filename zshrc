@@ -1,3 +1,5 @@
+setopt nobeep
+
 # load our own completion functions
 fpath=(~/.zsh/completion /usr/local/share/zsh-completions $fpath)
 
@@ -12,6 +14,11 @@ setopt auto_menu
 setopt complete_in_word
 setopt listpacked
 
+# Case-insensitive and fuzzy-like matching for completion
+# 'lic<TAB>' completes LICENSE; 'bundle<TAB>' completes 'vimrc.bundles'
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
+zstyle ':completion:*' list-colors ''
+
 for function in ~/.zsh/functions/*; do
   source $function
 done
@@ -25,6 +32,8 @@ setopt hist_ignore_space
 setopt hist_verify
 setopt inc_append_history
 setopt share_history
+
+HISTFILE=$HOME/.zsh_history
 SAVEHIST=4096
 HISTSIZE=4096
 
