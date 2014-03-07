@@ -20,7 +20,7 @@ apps = [
 ]
 
 apps.each do |app|
-  if Dir.exists?("/Applications/#{app}.app")
+  if File.directory?("/Applications/#{app}.app")
     `sudo rm -r "/Applications/System/#{app}.app"`
     `sudo mv "/Applications/#{app}.app" /Applications/System/`
   else
