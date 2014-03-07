@@ -1,2 +1,2 @@
 EXCLUDES="README.md LICENSE"
-DOTFILES_DIRS="$HOME/.dotfiles-new"
+DOTFILES_DIRS="$HOME/.dotfiles"
