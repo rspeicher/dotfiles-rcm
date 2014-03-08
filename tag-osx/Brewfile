@@ -35,6 +35,7 @@ tap mpv-player/mpv
 install --with-bundle --HEAD mpv
 
 tap phinze/cask
+install brew-cask
 
 linkapps
 cleanup
