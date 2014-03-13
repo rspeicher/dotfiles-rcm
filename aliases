@@ -41,3 +41,5 @@ alias tsigo='ssh tsigo@tsigo.com'
 # Convenience
 alias youtube-mp3="youtube-dl -t --no-mtime --extract-audio --audio-format mp3 --audio-quality 192"
 alias psname="ps aux | grep -i"
+
+[[ -f ~/.aliases.local ]] && source ~/.aliases.local
