@@ -1,6 +1,3 @@
-export RAILS_ENV=production
-export RACK_ENV=production
-
 # Automatically start tmux for ssh connections
 # http://william.shallum.net/random-notes/automatically-start-tmux-on-ssh-login
 if [ "$PS1" != "" -a "${STARTED_TMUX:-x}" = x -a "${SSH_TTY:-x}" != x ]
