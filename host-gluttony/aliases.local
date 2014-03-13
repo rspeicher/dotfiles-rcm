@@ -1,0 +1,2 @@
+alias mcrypt='encfs ~/.encrypted ~/encrypted -- -o allow_other'
+alias ucrypt='fusermount -u ~/encrypted'
