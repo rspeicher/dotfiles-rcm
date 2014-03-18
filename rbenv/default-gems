@@ -2,6 +2,7 @@ bundler
 chronic
 cocaine
 httparty
+mina
 pry
 trollop
 unmac
