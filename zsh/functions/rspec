@@ -1,0 +1,9 @@
+rspec() {
+  if [ -S .zeus.sock ]; then
+    zeus rspec "$@"
+  elif [ -f Gemfile ]; then
+    bundle exec rspec "$@"
+  else
+    command rspec "$@"
+  fi
+}
