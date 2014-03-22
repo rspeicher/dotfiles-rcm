@@ -18,6 +18,7 @@ coverage/*
 db/*.sqlite3
 doc/*
 log/*.log
+tags
 tmp/**/*
 tmp/restart.txt
 zeus.json
