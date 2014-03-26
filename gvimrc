@@ -1,4 +1,4 @@
-set guifont=Droid_Sans_Mono:h15.00  " Font
+set guifont=Droid_Sans_Mono:h13.00  " Font
 set vb                              " No audible bell
 set guioptions-=T                   " No toolbar
 set guioptions-=R                   " Don't show right scrollbar
