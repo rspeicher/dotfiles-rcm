@@ -1,5 +1,6 @@
 tap thoughtbot/formulae
 
+install ctags-exuberant
 install git
 install git-extras
 install hub
@@ -17,6 +18,7 @@ install mysql
 install node
 install postgresql
 install python
+install rbenv-ctags
 install rbenv-default-gems
 install rbenv-gemset
 install rcm
@@ -36,6 +38,8 @@ install --with-bundle --HEAD mpv
 
 tap phinze/cask
 install brew-cask
+
+cask install qlstephen
 
 linkapps
 cleanup
