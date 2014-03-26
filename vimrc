@@ -80,10 +80,6 @@ au FileType text setlocal textwidth=80
 
 au BufReadPost fugitive://* set bufhidden=delete
 
-let g:rubycomplete_buffer_loading = 1
-let g:rubycomplete_klasses_in_global = 1
-let g:rubycomplete_rails = 1
-
 " ------------------------------
 " Looks
 " ------------------------------
