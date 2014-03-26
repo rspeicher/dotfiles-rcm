@@ -35,6 +35,7 @@ Bundle 'kien/ctrlp.vim'
     endif
 
     map <Leader>b :CtrlPBuffer<CR>
+    map <Leader>g :CtrlPTag<CR>
 
     " Start CtrlP scoped to the current file's directory
     map <Leader>e :CtrlP %%<cr>
@@ -48,7 +49,7 @@ Bundle 'kien/ctrlp.vim'
     autocmd User Rails map <Leader>v :CtrlP app/views/<cr>
 
 Bundle 'thoughtbot/vim-rspec'
-    let g:rspec_command = "Dispatch rspec --format progress {spec}"
+    let g:rspec_command = "compiler rspec | set makeprg=zeus | Make rspec {spec}"
 
     map <Leader>t :call RunCurrentSpecFile()<CR>
     map <Leader>n :call RunNearestSpec()<CR>
@@ -103,7 +104,6 @@ Bundle 'scrooloose/nerdtree'
 " ------------------------------
 
 Bundle 'kchmck/vim-coffee-script'
-" Bundle 'pangloss/vim-javascript'
 
 " ------------------------------
 " Git
@@ -120,7 +120,6 @@ Bundle 'tpope/vim-cucumber'
 Bundle 'tpope/vim-haml'
 Bundle 'tpope/vim-rails'
 Bundle 'tpope/vim-rake'
-" Bundle 'vim-ruby/vim-ruby'
 
 " ------------------------------
 " Text objects
@@ -129,8 +128,6 @@ Bundle 'tpope/vim-rake'
 runtime macros/matchit.vim
 
 Bundle 'kana/vim-textobj-user'
-" Bundle 'argtextobj.vim'
-" Bundle 'michaeljsmith/vim-indent-object'
 Bundle 'nelstrom/vim-textobj-rubyblock'
 
 " ------------------------------
@@ -138,7 +135,6 @@ Bundle 'nelstrom/vim-textobj-rubyblock'
 " ------------------------------
 
 Bundle 'nginx.vim'
-" Bundle 'juvenn/mustache.vim'
 Bundle 'tpope/vim-markdown'
 
 " ------------------------------
@@ -154,17 +150,7 @@ Bundle 'croaky/vim-colors-github'
 " Experimental
 " ------------------------------
 
-Bundle 'Gundo'
-    nnoremap <Leader>u :GundoToggle<CR>
-
-Bundle 'ZoomWin'
-    map <Leader>z :ZoomWin<CR>
-
-" Bundle 'applescript.vim'
-
+Bundle 'AndrewRadev/splitjoin.vim'
 Bundle 'jc00ke/vim-tomdoc'
-
-" Bundle 'aliva/vim-fish'
-" Bundle 'rodjek/vim-puppet'
 
 filetype on
