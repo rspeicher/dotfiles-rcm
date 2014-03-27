@@ -5,23 +5,23 @@ set rtp+=~/.vim/bundle/vundle/
 call vundle#rc()
 
 " Let Vundle manage Vundle
-Bundle 'gmarik/vundle'
+Plugin 'gmarik/vundle'
 
 " ------------------------------
 " General
 " ------------------------------
 
-Bundle 'bling/vim-airline'
-Bundle 'rking/ag.vim'
-Bundle 'tpope/vim-dispatch'
-Bundle 'tpope/vim-endwise'
-Bundle 'tpope/vim-eunuch'
-Bundle 'tpope/vim-repeat'
-Bundle 'tpope/vim-speeddating'
-Bundle 'tpope/vim-surround'
-Bundle 'tpope/vim-unimpaired'
+Plugin 'bling/vim-airline'
+Plugin 'rking/ag.vim'
+Plugin 'tpope/vim-dispatch'
+Plugin 'tpope/vim-endwise'
+Plugin 'tpope/vim-eunuch'
+Plugin 'tpope/vim-repeat'
+Plugin 'tpope/vim-speeddating'
+Plugin 'tpope/vim-surround'
+Plugin 'tpope/vim-unimpaired'
 
-Bundle 'kien/ctrlp.vim'
+Plugin 'kien/ctrlp.vim'
     let g:ctrlp_custom_ignore = '\.git$\|\.hg$\|\.svn$'
     let g:ctrlp_dotfiles = 0
     let g:ctrlp_max_depth = 15
@@ -48,7 +48,7 @@ Bundle 'kien/ctrlp.vim'
     autocmd User Rails map <Leader>u :CtrlP spec/models/<cr>
     autocmd User Rails map <Leader>v :CtrlP app/views/<cr>
 
-Bundle 'thoughtbot/vim-rspec'
+Plugin 'thoughtbot/vim-rspec'
     let g:rspec_command = "compiler rspec | set makeprg=zeus | Make rspec {spec}"
 
     map <Leader>t :call RunCurrentSpecFile()<CR>
@@ -56,10 +56,10 @@ Bundle 'thoughtbot/vim-rspec'
     map <Leader>l :call RunLastSpec()<CR>
     map <Leader>s :call RunAllSpecs()<CR>
 
-Bundle 'AndrewRadev/switch.vim'
+Plugin 'AndrewRadev/switch.vim'
     nnoremap - :Switch<cr>
 
-Bundle 'Tabular'
+Plugin 'Tabular'
     map <Leader>a= :Tabularize /=<CR>
     map <Leader>a> :Tabularize /=><CR>
     map <Leader>a: :Tabularize properties<CR>
@@ -72,11 +72,11 @@ Bundle 'Tabular'
     vmap <Leader>at :Tabularize table<CR>gv
     vmap <Leader>a# :Tabularize rdoc<CR>gv
 
-Bundle 'tComment'
+Plugin 'tComment'
     nmap <Leader>cc <C-_><C-_>
     vmap <Leader>cc <C-_><C-_>
 
-Bundle 'scrooloose/nerdtree'
+Plugin 'scrooloose/nerdtree'
     let g:NERDTreeIgnore      = ['\.rbc$', '\~$', '.DS_Store$']
     let g:NERDTreeChDirMode   = 2
     let g:NERDTreeQuitOnOpen  = 1
@@ -103,23 +103,23 @@ Bundle 'scrooloose/nerdtree'
 " CoffeeScript / JavaScript
 " ------------------------------
 
-Bundle 'kchmck/vim-coffee-script'
+Plugin 'kchmck/vim-coffee-script'
 
 " ------------------------------
 " Git
 " ------------------------------
 
-Bundle 'tpope/vim-fugitive'
-Bundle 'tpope/vim-git'
+Plugin 'tpope/vim-fugitive'
+Plugin 'tpope/vim-git'
 
 " ------------------------------
 " Ruby
 " ------------------------------
 
-Bundle 'tpope/vim-cucumber'
-Bundle 'tpope/vim-haml'
-Bundle 'tpope/vim-rails'
-Bundle 'tpope/vim-rake'
+Plugin 'tpope/vim-cucumber'
+Plugin 'tpope/vim-haml'
+Plugin 'tpope/vim-rails'
+Plugin 'tpope/vim-rake'
 
 " ------------------------------
 " Text objects
@@ -127,30 +127,30 @@ Bundle 'tpope/vim-rake'
 
 runtime macros/matchit.vim
 
-Bundle 'kana/vim-textobj-user'
-Bundle 'nelstrom/vim-textobj-rubyblock'
+Plugin 'kana/vim-textobj-user'
+Plugin 'nelstrom/vim-textobj-rubyblock'
 
 " ------------------------------
 " Misc
 " ------------------------------
 
-Bundle 'nginx.vim'
-Bundle 'tpope/vim-markdown'
+Plugin 'nginx.vim'
+Plugin 'tpope/vim-markdown'
 
 " ------------------------------
 " Colors
 " ------------------------------
 
-Bundle 'tomasr/molokai'
-Bundle 'chriskempson/vim-tomorrow-theme'
-Bundle 'nanotech/jellybeans.vim'
-Bundle 'croaky/vim-colors-github'
+Plugin 'tomasr/molokai'
+Plugin 'chriskempson/vim-tomorrow-theme'
+Plugin 'nanotech/jellybeans.vim'
+Plugin 'croaky/vim-colors-github'
 
 " ------------------------------
 " Experimental
 " ------------------------------
 
-Bundle 'AndrewRadev/splitjoin.vim'
-Bundle 'jc00ke/vim-tomdoc'
+Plugin 'AndrewRadev/splitjoin.vim'
+Plugin 'jc00ke/vim-tomdoc'
 
 filetype on
