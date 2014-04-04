@@ -33,7 +33,21 @@ endif
 " Autocomplete
 " ------------------------------
 
-set complete=.,w,b,t
+" Multipurpose tab key
+" Indent if we're at the beginning of a line. Else, do completion.
+function! InsertTabWrapper()
+    let col = col('.') - 1
+    if !col || getline('.')[col - 1] !~ '\k'
+        return "\<tab>"
+    else
+        return "\<c-n>"
+    endif
+endfunction
+inoremap <tab> <c-r>=InsertTabWrapper()<cr>
+inoremap <s-tab> <c-p>
+
+" Index ctags from any project, including those outside Rails
+map <Leader>ct :!ctags --exclude='.gems/**/*' -R .<CR>
 
 " ------------------------------
 " Backups
@@ -185,7 +199,7 @@ map <Leader>C :set invcursorcolumn<CR>
 command! Rgem :e Gemfile
 command! RTgem :tabe Gemfile
 
-" Command-T / Ctrl-P
+" Ctrl-P
 set wildignore+=coverage/**,log/**,tmp/**
 set wildignore+=*/cache/**
 set wildignore+=*/tmp/**
@@ -197,20 +211,8 @@ set wildignore+=*/tmp/**
 nnoremap j gj
 nnoremap k gk
 
+" Quick file switch
 nnoremap <Leader><Leader> <c-^>
-
-" Multipurpose tab key
-" Indent if we're at the beginning of a line. Else, do completion.
-function! InsertTabWrapper()
-    let col = col('.') - 1
-    if !col || getline('.')[col - 1] !~ '\k'
-        return "\<tab>"
-    else
-        return "\<c-p>"
-    endif
-endfunction
-inoremap <tab> <c-r>=InsertTabWrapper()<cr>
-inoremap <s-tab> <c-n>
 
 " Quick macro to strip trailing whitespace
 nnoremap @w :%s/\v\s+$//g<cr>
@@ -224,3 +226,12 @@ map <Leader>VV :edit $MYVIMRC<CR>
 
 " Source vimrc after saving it
 autocmd! BufWritePost .vimrc,vimrc,bundles.vim source $MYVIMRC
+
+" ------------------------------
+" Experimental
+" ------------------------------
+
+" Don't screw up folds when inserting text that might affect them, until
+" leaving insert mode. Foldmethod is local to the window.
+autocmd InsertEnter * let w:last_fdm=&foldmethod | setlocal foldmethod=manual
+autocmd InsertLeave * let &l:foldmethod=w:last_fdm
