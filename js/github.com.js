@@ -14,10 +14,11 @@ function linkGems() {
   }
 }
 
-// $('#slider a.js-slide-to, .breadcrumb a').live('click', function() {
-//   // Give the file time to load
-//   setTimeout(linkGems, 500)
-// })
+$(document).on('click', 'a[title="Gemfile"]', function() {
+  // Give the file time to load
+  setTimeout(linkGems, 500)
+})
+
 linkGems()
 
 // Infinite scroll on commit logs
