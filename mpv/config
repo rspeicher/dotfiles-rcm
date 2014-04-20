@@ -6,3 +6,20 @@ osd-duration=2500
 
 # Start muted
 mute
+
+# Use CoreAudio and CoreVideo (OS X)
+vo=corevideo
+ao=coreaudio
+
+# Start centered
+geometry=50%:50%
+
+# Pretend to be a browser for network streams
+user-agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.116 Safari/537.36"
+
+# Use 8MB cache for streams, 32MB for local
+cache-default = 8192
+cache = 32768
+
+# Hardware decoding
+hwdec = auto
