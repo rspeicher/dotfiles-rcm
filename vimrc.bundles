@@ -72,9 +72,9 @@ Plugin 'Tabular'
     vmap <Leader>at :Tabularize table<CR>gv
     vmap <Leader>a# :Tabularize rdoc<CR>gv
 
-Plugin 'tComment'
-    nmap <Leader>cc <C-_><C-_>
-    vmap <Leader>cc <C-_><C-_>
+Plugin 'tpope/vim-commentary'
+    nmap <Leader>cc gcc
+    vmap <Leader>cc gc
 
 Plugin 'scrooloose/nerdtree'
     let g:NERDTreeIgnore      = ['\.rbc$', '\~$', '.DS_Store$']
@@ -152,5 +152,6 @@ Plugin 'croaky/vim-colors-github'
 
 Plugin 'AndrewRadev/splitjoin.vim'
 Plugin 'jc00ke/vim-tomdoc'
+Plugin 'tsigo/vim-dependencywtf'
 
 filetype on
