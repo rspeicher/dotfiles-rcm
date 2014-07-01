@@ -21,8 +21,10 @@ def titlecase(string)
 end
 
 def specialcase(string)
-  string = "The Office" if string.downcase == "the office us"
+  string = "The Office (US)" if string.downcase == "the office us"
   string = "It's Always Sunny In Philadelphia" if string.downcase.include?('always sunny')
+  string = "Louie (2010)" if string.downcase == 'louie'
+  string = 'Archer (2009)' if string.downcase == 'archer'
 
   string
 end
