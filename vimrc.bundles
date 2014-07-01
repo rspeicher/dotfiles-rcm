@@ -44,6 +44,7 @@ Plugin 'kien/ctrlp.vim'
     autocmd User Rails map <Leader>c :CtrlP app/controllers/<cr>
     autocmd User Rails map <Leader>h :CtrlP app/helpers/<cr>
     autocmd User Rails map <Leader>j :CtrlP app/assets/javascripts/<cr>
+    autocmd User Rails map <Leader>S :CtrlP app/assets/stylesheets/<cr>
     autocmd User Rails map <Leader>m :CtrlP app/models/<cr>
     autocmd User Rails map <Leader>u :CtrlP spec/models/<cr>
     autocmd User Rails map <Leader>v :CtrlP app/views/<cr>
@@ -152,6 +153,5 @@ Plugin 'croaky/vim-colors-github'
 
 Plugin 'AndrewRadev/splitjoin.vim'
 Plugin 'jc00ke/vim-tomdoc'
-Plugin 'tsigo/vim-dependencywtf'
 
 filetype on
