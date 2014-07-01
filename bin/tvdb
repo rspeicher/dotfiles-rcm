@@ -4,7 +4,7 @@
 # and episode numbers and episode title
 #
 # Data comes from thetvdb.com API, and this script expects a file named
-# .tvdb_credentials in the same folder as this script containing your API key
+# .tvdb_credentials in the user's home folder.
 
 require 'rubygems'
 require 'trollop'
@@ -57,7 +57,7 @@ class Renamer
   end
 
   def go
-    @client  = Client.new(File.read(File.expand_path('../.tvdb_credentials', __FILE__)))
+    @client  = Client.new(File.read(File.expand_path('~/.tvdb_credentials', __FILE__)))
     @results = @client.search(@show)
 
     if @results.length == 0
