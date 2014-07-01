@@ -40,24 +40,124 @@ class MusicMover
   # Pathname object for the current location of the track
   attr_accessor :track_path
 
+  attr_accessor :tracks
+
   def initialize(opts)
     @opts  = opts
     @quiet = opts[:quiet]
   end
 
   def run
-    selection = itunes("get selection").split(', ')
-    selection.each do |track|
+    @tracks = []
+
+    selection = itunes("get selection")
+    selection.split(', ').each do |track|
       location = itunes("get location of #{track.strip} as text")
 
-      # Skip to the next track if the file is missing for whatever reason
-      # (e.g., network drive not attached)
-      next if location == "missing value"
+      fields = Hash.new('')
 
-      path = posix_path(location)
+      fields[:track]      = track
+      fields[:location]   = location
+      fields[:posix_path] = posix_path(location)
+      fields.merge!(extract_info(fields[:posix_path]))
+
+      @tracks << fields
+    end
+
+    validate!
+    process
+  end
+
+  private
+
+  def validate!
+    errors = false
+
+    first = tracks.first
+
+    tracks.each do |t|
+      if t[:location] == "missing value"
+        puts "Invalid location: #{t[:track]}"
+        errors = true
+      end
+
+      if t[:number] == 0 || t[:number].to_s == ''
+        puts "Blank track number: #{shorten(t[:posix_path])}"
+        errors = true
+      end
+
+      unless (1900..2084).include?(t[:year])
+        puts "Invalid year: #{t[:year]}"
+        errors = true
+      end
+
+      if t[:name].nil? || t[:name].strip == ''
+        puts "Blank title: #{shorten(t[:posix_path])}"
+        errors = true
+      end
+
+      [:album, :year, :artist].each do |field|
+        if first[field] != t[field]
+          puts "Inconsistent #{field.to_s.ljust(6)}: #{first[field]} || #{t[field]} (#{shorten(t[:posix_path])})"
+          errors = true
+        end
+      end
+    end
+
+    if errors && !opts[:force]
+      puts
+      puts "Aborting due to error(s)"
+      exit 1
+    end
+  end
+
+  def extract_info(path)
+    # Return value
+    info = Hash.new('')
+
+    # Gonna use this a lot, so make it more accessible
+    path = path.to_s
+
+    return info unless File.exists?(path)
+
+    # Proc that takes a TagLib::Tag object and returns a Hash with just the info we care about.
+    extraction = ->(tag) do
+      {
+        album:  tag.album,
+        artist: tag.respond_to?(:frame_list) ? (tag.frame_list('TPE2').first || tag.artist).to_s : tag.artist.to_s,
+        name:   tag.title,
+        number: tag.track,
+        year:   tag.year,
+        disc:   tag.respond_to?(:frame_list) ? (tag.frame_list('TPOS').first || '1/1').to_s : '1/1'
+      }
+    end
+
+    # Which tag attribute we use depends on the file type...
+    case ext = File.extname(path)
+    when '.m4a'
+      TagLib::MP4::File.open(path) do |f|
+        info = extraction.call(f.tag)
+      end
+    when '.mp3'
+      TagLib::MPEG::File.open(path) do |f|
+        info = extraction.call(f.id3v2_tag)
+      end
+    else
+      puts
+      puts "Unsupported file format: #{ext}"
+      exit 1
+    end
+
+    info
+  end
+
+  def process
+    puts
+    tracks.each do |track|
+      path = track[:posix_path]
 
       @track_path = Pathname.new(path)
-      @track_info = extract_info
+      @track_info = extract_info(track_path)
 
       if opts[:single]
         new_filename = process_as_single
@@ -79,55 +179,12 @@ class MusicMover
 
         # Write the change back to iTunes so it actually persists
         new_filename = opts[:pretend] ? shorten(new_filename) : new_filename
-        itunes %{set location of #{track.strip} to POSIX file "#{new_filename}" as alias}, opts[:pretend]
-      rescue Exception
+        itunes %{set location of #{track[:track].strip} to POSIX file "#{new_filename}" as alias}, opts[:pretend]
+      rescue Exception => e
         # Ignore any exceptions about directory already existing or failing to
         # delete the old one.
       end
-
-      puts unless @quiet
     end
-  end
-
-  private
-
-  def extract_info
-    # Return value
-    info = Hash.new('')
-
-    # Gonna use this a lot, so make it more accessible
-    path = @track_path.to_s
-
-    return info unless File.exists?(path)
-
-    # Proc that takes a TagLib::Tag object and returns a Hash with just the info we care about.
-    extraction = ->(tag) do
-      {
-        album:  tag.album,
-        artist: tag.respond_to?(:frame_list) ? (tag.frame_list('TPE2').first || tag.artist).to_s : tag.artist.to_s,
-        name:   tag.title,
-        number: tag.track,
-        year:   tag.year
-      }
-    end
-
-    # Which tag attribute we use depends on the file type...
-    case ext = File.extname(path)
-    when '.m4a'
-      TagLib::MP4::File.open(path) do |f|
-        info = extraction.call(f.tag)
-      end
-    when '.mp3'
-      TagLib::MPEG::File.open(path) do |f|
-        info = extraction.call(f.tag)
-      end
-    else
-      puts
-      puts "Unsupported file format: #{ext}"
-      exit 1
-    end
-
-    info
   end
 
   def process_as_single
@@ -161,13 +218,17 @@ Usage:
   musicmover [options]
 EOS
 
-  opt :pretend, "Don't actually modify anything",                  :default => false
-  opt :quiet,   "Don't output anything",                           :default => false
-  opt :copy,    "Copy files instead of moving them",               :default => false
-  opt :single,  "Process selection as singles rather than albums", :default => false
+  opt :pretend, "Don't actually modify anything",                  default: false
+  opt :quiet,   "Don't output anything",                           default: false
+  opt :copy,    "Copy files instead of moving them",               default: false
+  opt :single,  "Process selection as singles rather than albums", default: false
+  opt :force,   "Ignore any validation errors and process anyway", default: false
 end
 
-mover = MusicMover.new(opts)
-mover.run
-
-trap("INT") { puts; exit(1) }
+begin
+  mover = MusicMover.new(opts)
+  mover.run
+rescue Interrupt
+  puts
+  exit 1
+end
