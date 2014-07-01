@@ -21,6 +21,8 @@
 
   j = stash
   jl = stash list
+  jp = stash pop
+  jv = stash save
   js = !sh -c 'git stash show -v stash@{$1}' -
   ja = !sh -c 'git stash apply stash@{$1}' -
   jd = !sh -c 'git stash drop stash@{$1} && git stash list' -
