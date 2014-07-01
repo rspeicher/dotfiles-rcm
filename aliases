@@ -25,6 +25,7 @@ alias gc='git commit -v'
 alias gca='gc --amend'
 alias gco='git checkout'
 alias gd='git diff'
+alias gi='git add -i'
 alias gp='git push'
 alias gs='git status'
 
